@@ -1,0 +1,16 @@
+﻿<prism:PrismApplication x:Class="RealTimeVideoAnalysis.App"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:local="clr-namespace:RealTimeVideoAnalysis"
+                        xmlns:prism="http://prismlibrary.com/"
+                        xmlns:cv="clr-namespace:RealTimeVideoAnalysis.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Global Converters (BooleanToVisibilityConverter is now in Generic.xaml) -->
+        </ResourceDictionary>
+    </Application.Resources>
+</prism:PrismApplication>

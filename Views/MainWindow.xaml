@@ -1,0 +1,394 @@
+<Window x:Class="RealTimeVideoAnalysis.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:prism="http://prismlibrary.com/"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:cv="clr-namespace:RealTimeVideoAnalysis.Converters"
+        xmlns:cc="clr-namespace:RealTimeVideoAnalysis.CustomControls"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        mc:Ignorable="d"
+        Title="{Binding Title}" Height="900" Width="1280"
+        Background="#FFF8F9FA">
+    <Window.Resources>
+        <!-- Modern Slider Style -->
+        <Style TargetType="Slider">
+            <Setter Property="Foreground" Value="#FF5B7FFF"/>
+            <Setter Property="Height" Value="20"/>
+        </Style>
+        
+        <!-- Modern GroupBox Style -->
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="#FFE5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" 
+                                    Margin="0,10,0,0">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="10" ShadowDepth="2" Direction="270"/>
+                                </Border.Effect>
+                            </Border>
+                            <ContentPresenter ContentSource="Content" 
+                                              RecognizesAccessKey="True" 
+                                              Margin="10,20,10,10"/>
+                            <Label Background="{TemplateBinding Background}" 
+                                   Content="{TemplateBinding Header}" 
+                                   FontWeight="SemiBold"
+                                   FontSize="12"
+                                   Foreground="#FF374151"
+                                   Margin="20,0,0,0" 
+                                   Padding="5,0" 
+                                   VerticalAlignment="Top" 
+                                   HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />       <!-- Video Display Area -->
+            <RowDefinition Height="Auto" />    <!-- Error Message Area -->
+            <RowDefinition Height="Auto" />    <!-- Control Buttons Area -->
+            <RowDefinition Height="Auto" />    <!-- Brightness and Contrast Controls -->
+            <RowDefinition Height="Auto" />    <!-- Color Detection Controls -->
+            <RowDefinition Height="Auto" />    <!-- ROI Info Area -->
+            <RowDefinition Height="Auto" />    <!-- Status Bar Area -->
+        </Grid.RowDefinitions>
+
+        <!-- Video Display and ROI Canvas -->
+        <Grid Grid.Row="0" Margin="5">
+            <Border BorderBrush="#FFE5E7EB" BorderThickness="1" CornerRadius="8" Background="White">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="10" ShadowDepth="2" Direction="270"/>
+                </Border.Effect>
+                <Image x:Name="VideoDisplayImage" Source="{Binding VideoFrame}" Stretch="Uniform" />
+            </Border>
+            <Canvas Background="Transparent"> 
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:InvokeCommandAction Command="{Binding RoiMouseDownCommand}" PassEventArgsToCommand="True" />
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseMove">
+                        <b:InvokeCommandAction Command="{Binding RoiMouseMoveCommand}" PassEventArgsToCommand="True" />
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding RoiMouseUpCommand}" PassEventArgsToCommand="True" />
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <Rectangle Stroke="Red" StrokeThickness="2"
+                           Visibility="{Binding CurrentRoi.IsDefined, Converter={StaticResource BooleanToVisibilityConverter}}"
+                           Width="{Binding CurrentRoi.Width, Mode=OneWay}"
+                           Height="{Binding CurrentRoi.Height, Mode=OneWay}">
+                    <Canvas.Left>
+                        <Binding Path="CurrentRoi.X" Mode="OneWay" />
+                    </Canvas.Left>
+                    <Canvas.Top>
+                        <Binding Path="CurrentRoi.Y" Mode="OneWay" />
+                    </Canvas.Top>
+                </Rectangle>
+            </Canvas>
+        </Grid>
+
+        <!-- Error Message Display -->
+        <Border Grid.Row="1" 
+                Background="#FFFFE0E0" 
+                BorderBrush="#FFFF0000" 
+                BorderThickness="1" 
+                CornerRadius="4" 
+                Margin="5" 
+                Padding="10,5"
+                Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="⚠" FontSize="16" Foreground="Red" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <cc:IconButton Grid.Column="2" 
+                              Content="" 
+                              Icon="" 
+                              Command="{Binding ClearErrorCommand}" 
+                              Width="24" Height="24" 
+                              Padding="0"
+                              IconSize="12"
+                              CornerRadius="12"
+                              ButtonType="Danger"
+                              ToolTip="에러 메시지 닫기"/>
+            </Grid>
+        </Border>
+
+        <!-- Control Buttons -->
+        <StackPanel Grid.Row="2" Margin="5">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+            <cc:IconButton Content="웹캠 시작" 
+                          Icon="" 
+                          Command="{Binding StartWebcamCommand}" 
+                          ButtonType="Primary"
+                          Margin="5" />
+            <cc:IconButton Content="파일 열기" 
+                          Icon="" 
+                          Command="{Binding OpenFileCommand}" 
+                          ButtonType="Primary"
+                          Margin="5" />
+            <cc:IconButton Content="{Binding PlayPauseButtonText}" 
+                          Icon="{Binding PlayPauseIcon}" 
+                          Command="{Binding PlayPauseCommand}" 
+                          ButtonType="Success"
+                          Margin="5" />
+            <cc:IconButton Content="정지" 
+                          Icon="" 
+                          Command="{Binding StopCommand}" 
+                          ButtonType="Danger"
+                          Margin="5" />
+            <Separator Margin="10,5"/>
+            <cc:IconButton Content="이전" 
+                          Icon="" 
+                          Command="{Binding PreviousFrameCommand}" 
+                          IconSize="16"
+                          ButtonType="Default"
+                          Margin="5" 
+                          ToolTip="이전 프레임"/>
+            <Slider Value="{Binding CurrentFramePosition}" 
+                    Minimum="0" 
+                    Maximum="{Binding TotalFrameCount}" 
+                    Width="200" 
+                    VerticalAlignment="Center" 
+                    Margin="5"
+                    IsEnabled="{Binding CanExecuteFrameNavigation}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="PreviewMouseDown">
+                        <prism:InvokeCommandAction Command="{Binding SliderDragStartedCommand}"/>
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="PreviewMouseUp">
+                        <prism:InvokeCommandAction Command="{Binding SliderDragCompletedCommand}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Slider>
+            <TextBlock Text="{Binding FrameInfo}" VerticalAlignment="Center" Margin="5" MinWidth="120" TextAlignment="Center"/>
+            <cc:IconButton Content="다음" 
+                          Icon="" 
+                          Command="{Binding NextFrameCommand}" 
+                          IconSize="16"
+                          ButtonType="Default"
+                          Margin="5" 
+                          ToolTip="다음 프레임"/>
+            <Separator Margin="10,5"/>
+            <cc:IconButton Content="스크린샷" 
+                          Icon="&#xE722;" 
+                          Command="{Binding CaptureScreenshotCommand}" 
+                          ButtonType="Info"
+                          Margin="5" 
+                          ToolTip="현재 화면 캡처"/>
+            <cc:IconButton Command="{Binding ToggleRecordingCommand}" 
+                          Margin="5" 
+                          ToolTip="동영상 녹화">
+                <cc:IconButton.Style>
+                    <Style TargetType="cc:IconButton">
+                        <Setter Property="Content" Value="녹화 시작"/>
+                        <Setter Property="Icon" Value=""/>
+                        <Setter Property="ButtonType" Value="Default"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRecordingActive}" Value="True">
+                                <Setter Property="Content" Value="녹화 중지"/>
+                                <Setter Property="Icon" Value=""/>
+                                <Setter Property="ButtonType" Value="Danger"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </cc:IconButton.Style>
+            </cc:IconButton>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                <cc:IconButton Content="ROI 초기화" 
+                              Icon="" 
+                              Command="{Binding ClearRoiCommand}" 
+                              ButtonType="Warning"
+                              Margin="5" />
+                <cc:IconButton Content="흑백 적용" 
+                              Icon="" 
+                              Command="{Binding ApplyBinaryEffectCommand}" 
+                              Margin="5" />
+                <cc:IconButton Content="그레이스케일 적용" 
+                              Icon="" 
+                              Command="{Binding ApplyGrayscaleEffectCommand}" 
+                              Margin="5" />
+                <cc:IconButton Content="가우시안 블러 적용" 
+                              Icon="" 
+                              Command="{Binding ApplyGaussianBlurEffectCommand}" 
+                              Margin="5" />
+                <cc:IconButton Content="샤프닝 적용" 
+                              Icon="" 
+                              Command="{Binding ApplySharpenEffectCommand}" 
+                              Margin="5" />
+                <cc:IconButton Content="색상 검출" 
+                              Icon="" 
+                              Command="{Binding ApplyColorDetectionCommand}" 
+                              Margin="5" />
+                <cc:IconButton Content="효과 제거" 
+                              Icon="" 
+                              Command="{Binding ClearImageEffectCommand}" 
+                              ButtonType="Default"
+                              Margin="5" />
+                <Separator Margin="10,5"/>
+                <cc:IconButton Content="설정 저장" 
+                              Icon="&#xE74E;" 
+                              Command="{Binding SaveSettingsCommand}" 
+                              ButtonType="Info"
+                              Margin="5" />
+                <cc:IconButton Content="설정 불러오기" 
+                              Icon="&#xED25;" 
+                              Command="{Binding LoadSettingsCommand}" 
+                              ButtonType="Info"
+                              Margin="5" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Brightness and Contrast Controls -->
+        <GroupBox Header="밝기 / 대비" Grid.Row="3" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="밝기:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding Brightness}" Minimum="-100" Maximum="100" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding Brightness, StringFormat={}{0:F0}}"/>
+
+                <TextBlock Text="대비:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding Contrast}" Minimum="0.0" Maximum="2.0" 
+                        TickFrequency="0.1" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding Contrast, StringFormat={}{0:F1}}"/>
+                
+                <cc:IconButton Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" 
+                              Content="기본값" 
+                              Icon="" 
+                              Command="{Binding ResetBrightnessContrastCommand}" 
+                              ButtonType="Default"
+                              Margin="10,5" 
+                              VerticalAlignment="Center"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Color Detection Controls -->
+        <GroupBox Header="색상 검출 설정 (HSV)" Grid.Row="4" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Hue Range -->
+                <TextBlock Text="색상(H):" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding HueLower}" Minimum="0" Maximum="179" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding HueLower, StringFormat={}{0:F0}}"/>
+                <TextBlock Text="~" Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding HueUpper}" Minimum="0" Maximum="179" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="0" Grid.Column="5" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding HueUpper, StringFormat={}{0:F0}}"/>
+
+                <!-- Saturation Range -->
+                <TextBlock Text="채도(S):" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding SaturationLower}" Minimum="0" Maximum="255" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding SaturationLower, StringFormat={}{0:F0}}"/>
+                <TextBlock Text="~" Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding SaturationUpper}" Minimum="0" Maximum="255" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="1" Grid.Column="5" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding SaturationUpper, StringFormat={}{0:F0}}"/>
+
+                <!-- Value Range -->
+                <TextBlock Text="명도(V):" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding ValueLower}" Minimum="0" Maximum="255" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding ValueLower, StringFormat={}{0:F0}}"/>
+                <TextBlock Text="~" Grid.Row="2" Grid.Column="3" VerticalAlignment="Center" Margin="5"/>
+                <Slider Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="5"
+                        Value="{Binding ValueUpper}" Minimum="0" Maximum="255" 
+                        TickFrequency="10" IsSnapToTickEnabled="True"/>
+                <TextBlock Grid.Row="2" Grid.Column="5" VerticalAlignment="Center" Margin="5" MinWidth="30"
+                           Text="{Binding ValueUpper, StringFormat={}{0:F0}}"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- ROI Info -->
+        <GroupBox Header="ROI 정보" Grid.Row="5" Margin="5">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="X: " Margin="5,0"/>
+                <TextBlock Text="{Binding CurrentRoi.X, StringFormat={}{0:F0}, Mode=OneWay}" Margin="0,0,10,0" MinWidth="30"/>
+                <TextBlock Text="Y: " Margin="5,0"/>
+                <TextBlock Text="{Binding CurrentRoi.Y, StringFormat={}{0:F0}, Mode=OneWay}" Margin="0,0,10,0" MinWidth="30"/>
+                <TextBlock Text="Width: " Margin="5,0"/>
+                <TextBlock Text="{Binding CurrentRoi.Width, StringFormat={}{0:F0}, Mode=OneWay}" Margin="0,0,10,0" MinWidth="30"/>
+                <TextBlock Text="Height: " Margin="5,0"/>
+                <TextBlock Text="{Binding CurrentRoi.Height, StringFormat={}{0:F0}, Mode=OneWay}" Margin="0,0,10,0" MinWidth="30"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="6" Background="White" CornerRadius="6" Margin="5,5,5,0" BorderThickness="1" BorderBrush="#FFE5E7EB">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="5" ShadowDepth="1" Direction="270"/>
+            </Border.Effect>
+        <StatusBar Background="Transparent" BorderThickness="0">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Center">
+                <TextBlock Text="{Binding PerformanceInfo}" FontFamily="Consolas" Foreground="DarkGreen" FontWeight="Bold"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right" Visibility="{Binding IsRecordingActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Text="{Binding RecordingStatus}" Foreground="Red" FontWeight="Bold"/>
+            </StatusBarItem>
+        </StatusBar>
+        </Border>
+    </Grid>
+</Window> 

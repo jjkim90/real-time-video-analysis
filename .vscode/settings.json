@@ -1,0 +1,7 @@
+{
+    "omnisharp.useModernNet": false,
+    "omnisharp.enableAsyncCompletion": false,
+    "omnisharp.diagnosticWorkerDelay": 10000,
+    "csharp.diagnostics.delay": 10000,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": false
+}
