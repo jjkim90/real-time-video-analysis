@@ -6,26 +6,26 @@ OpenCVSharp와 WPF MVVM을 활용한 실시간 영상 처리 데스크톱 애플
 
 ## 🌟 주요 기능
 
-### 📹 실시간 영상 처리
+### 실시간 영상 처리
 - 웹캠 및 동영상 파일 지원
 - 30 FPS 안정적 처리
 - 프레임 단위 탐색
 
 ![effects-demo](https://github.com/user-attachments/assets/0b588240-21cb-4524-b757-4ced971720e9)
 
-### 🎯 ROI 기반 선택적 처리
+### ROI 기반 선택적 처리
 - 마우스 드래그로 관심 영역 지정
 - 선택 영역에만 효과 적용 (성능 최적화)
 
 ![roi-select](https://github.com/user-attachments/assets/c701dcb0-e50b-4585-819c-237781a203a2)
 
-### 🎨 다양한 이미지 효과
+### 다양한 이미지 효과
 ![all-effects-comparison](https://github.com/user-attachments/assets/5d227994-4886-4fe9-9b90-22ee9d4db0ae)
 
 - Binary / Grayscale / Gaussian Blur
 - Sharpen / Color Detection / Brightness & Contrast
 
-### 💾 편의 기능
+### 편의 기능
 - 스크린샷 캡처 (PNG)
 - 동영상 녹화 (MP4)
 - 설정 저장/불러오기 (JSON)
@@ -38,9 +38,9 @@ OpenCVSharp와 WPF MVVM을 활용한 실시간 영상 처리 데스크톱 애플
 | 분야 | 기술 | 버전 | 선택 이유 |
 |------|------|------|-----------|
 | **언어** | C# | 12.0 | 최신 문법으로 간결한 코드 작성 |
-| **프레임워크** | .NET | 8.0 | 크로스 플랫폼 지원, 성능 향상 |
+| **프레임워크** | .NET | 8.0 | 최신 .NET 8.0 사용 |
 | **UI** | WPF | - | 풍부한 UI 표현, 데이터 바인딩 |
-| **아키텍처** | MVVM (Prism) | 9.0 | 테스트 용이성, 관심사 분리 |
+| **아키텍처** | MVVM (Prism) | 9.0 | 관심사 분리 |
 | **영상처리** | OpenCVSharp4 | 4.11.0 | .NET 네이티브 지원, 고성능 |
 | **데이터** | Newtonsoft.Json | 13.0.3 | 설정 저장/로드 |
 
