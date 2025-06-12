@@ -2,82 +2,36 @@
 
 OpenCVSharp와 WPF MVVM을 활용한 실시간 영상 처리 데스크톱 애플리케이션
 
-[📌 스크린샷 필요: 메인 애플리케이션 UI 전체 화면]
+![application-main-window](https://github.com/user-attachments/assets/a5450378-f833-40b0-bfd6-b69c5562a98f)
 
 ## 🌟 주요 기능
 
-### 실시간 영상 처리
+### 📹 실시간 영상 처리
 - 웹캠 및 동영상 파일 지원
-- ROI(Region of Interest) 기반 선택적 처리
-- 다양한 이미지 효과 실시간 적용
+- 30 FPS 안정적 처리
+- 프레임 단위 탐색
 
-[📌 GIF 필요: ROI 영역 선택하고 효과 적용하는 모습]
+![effects-demo](https://github.com/user-attachments/assets/0b588240-21cb-4524-b757-4ced971720e9)
 
-### 성능 최적화
-- **30 FPS** 안정적 처리
-- **Mat 객체 풀링**으로 GC 압박 90% 감소
-- 메모리 사용량 최적화
+### 🎯 ROI 기반 선택적 처리
+- 마우스 드래그로 관심 영역 지정
+- 선택 영역에만 효과 적용 (성능 최적화)
 
-[📌 스크린샷 필요: FPS 표시되는 상태바]
+![roi-select](https://github.com/user-attachments/assets/c701dcb0-e50b-4585-819c-237781a203a2)
 
-## 🚀 Quick Start
+### 🎨 다양한 이미지 효과
+![all-effects-comparison](https://github.com/user-attachments/assets/5d227994-4886-4fe9-9b90-22ee9d4db0ae)
 
-### 실행 파일 다운로드 (권장)
-포트폴리오 검토를 위해 빌드된 실행 파일을 준비했습니다:
-- 📥 [최신 버전 다운로드](https://github.com/jjkim90/real-time-video-analysis/releases)
-- Windows 10 이상에서 바로 실행 가능
-- 별도 설치 과정 불필요
+- Binary / Grayscale / Gaussian Blur
+- Sharpen / Color Detection / Brightness & Contrast
 
-### 개발 환경 설정
-- Windows 10 이상
-- .NET 8.0
-- Visual Studio 2022
+### 💾 편의 기능
+- 스크린샷 캡처 (PNG)
+- 동영상 녹화 (MP4)
+- 설정 저장/불러오기 (JSON)
 
-### 소스 코드 실행
-```bash
-# 저장소 클론
-git clone https://github.com/jjkim90/real-time-video-analysis.git
+![capture-video-demo](https://github.com/user-attachments/assets/f1676e5f-5c42-4e9a-be30-6d182312f5cc)
 
-# 프로젝트 열기
-cd real-time-video-analysis
-start RealTimeVideoAnalysis.sln
-
-# Visual Studio에서 F5로 실행
-```
-
-## 💡 기술적 도전과 해결
-
-### 1. 프레임 드롭 문제 해결
-
-[📌 스크린샷 필요: 성능 개선 전/후 비교 차트 또는 수치]
-
-**문제**: 30분 이상 실행 시 주기적인 프레임 드롭 발생
-
-**원인 분석**:
-```csharp
-// 문제 코드: 매 프레임마다 새로운 Mat 객체 생성
-using (Mat grayRoi = new Mat())
-using (Mat binaryRoi = new Mat())
-{
-    // 30 FPS = 초당 90개 객체 생성/소멸
-}
-```
-
-**해결책**: Mat 객체 풀링 시스템 구현
-```csharp
-// 개선된 코드: 객체 재사용
-using (var grayRoi = _matPool.RentScoped())
-{
-    // GC 압박 감소, 안정적인 성능
-}
-```
-
-### 2. 안전한 리소스 관리
-
-**IDisposable 패턴 강화**:
-- Finalizer 추가로 누수 방지
-- 중복 Dispose 호출 안전성
-- 스레드 안전한 리소스 해제
 
 ## 🛠️ 기술 스택
 
@@ -99,7 +53,7 @@ RealTimeVideoAnalysis/
 │   ├── AppSettings.cs       # 애플리케이션 설정
 │   └── ImageEffectType.cs   # 이미지 효과 열거형
 ├── ViewModels/
-│   └── MainWindowViewModel.cs  # 핵심 비즈니스 로직 (1600+ lines)
+│   └── MainWindowViewModel.cs  # 핵심 비즈니스 로직
 ├── Views/
 │   ├── MainWindow.xaml      # 메인 UI
 │   └── MainWindow.xaml.cs   # 코드 비하인드 (최소화)
@@ -112,80 +66,35 @@ RealTimeVideoAnalysis/
     └── Generic.xaml         # 커스텀 컨트롤 스타일
 ```
 
-## 🎯 주요 기능 상세
+## ⚡ 성능 최적화
 
-### 1. ROI 기반 영상 처리
-
-[📌 GIF 필요: 마우스로 ROI 선택하는 과정]
-
-- 마우스 드래그로 관심 영역 선택
-- 선택된 영역에만 효과 적용 (성능 최적화)
-- 실시간 좌표 표시
-
-### 2. 다양한 이미지 효과
-
-[📌 스크린샷 필요: 각 효과별 적용 모습 (6개 그리드)]
-
-| 효과 | 설명 | 주요 파라미터 |
-|------|------|--------------|
-| **Binary** | 이진화 처리 | Threshold (0-255) |
-| **Grayscale** | 흑백 변환 | - |
-| **Gaussian Blur** | 노이즈 제거 | Kernel Size |
-| **Sharpen** | 선명도 향상 | Strength (0-5) |
-| **Color Detection** | HSV 색상 검출 | H/S/V Range |
-| **Brightness/Contrast** | 밝기/대비 조절 | -100 ~ +100 |
-
-### 3. 성능 모니터링
+### Mat 객체 풀링 구현
+장시간 실행 시 프레임 드롭 문제를 객체 풀링으로 해결
+- **문제**: 30 FPS = 초당 90개 Mat 객체 생성/소멸로 GC 압박
+- **해결**: 재사용 가능한 Mat Pool 구현
+- **결과**: GC 발생 90% 감소, 2시간+ 안정적 실행
 
 ```csharp
-// 실시간 성능 측정
-private void UpdatePerformanceInfo()
-{
-    CurrentFps = _frameCount / _fpsStopwatch.Elapsed.TotalSeconds;
-    CurrentProcessingTime = _frameStopwatch.ElapsedMilliseconds;
-}
+// Before: 매 프레임마다 새 객체 생성
+using (Mat grayRoi = new Mat()) { ... }
+
+// After: 객체 재사용
+using (var grayRoi = _matPool.RentScoped()) { ... }
 ```
 
-### 4. 에러 처리 및 복구
+## 🚀 실행 방법
 
-[📌 스크린샷 필요: 에러 메시지 표시 예시]
+### 실행 파일 다운로드 (권장)
+- 📥 [최신 릴리즈 다운로드](https://github.com/...)
+- Windows 10 이상에서 바로 실행 가능
 
-- 웹캠 연결 실패 시 상세 안내
-- 지원하지 않는 파일 형식 처리
-- 예외 발생 시 자동 복구
-
-## 📊 성과
-
-### 성능 개선
-- **메모리 사용량**: 50% 감소 (2GB → 1GB)
-- **GC 발생 빈도**: 90% 감소
-- **안정성**: 2시간+ 연속 실행 가능
-
-### 코드 품질
-- MVVM 패턴 엄격 준수
-- 단일 책임 원칙 적용
-- 포괄적인 에러 처리
-
-## 🔍 주요 학습 및 개선사항
-
-### 배운 점
-1. **메모리 관리의 중요성**
-   - GC 동작 원리 이해
-   - 객체 생명주기 최적화
-
-2. **MVVM 패턴의 실제 적용**
-   - View와 ViewModel 완전 분리
-   - 커맨드 패턴 활용
-
-3. **비동기 프로그래밍**
-   - async/await 올바른 사용
-   - UI 스레드 블로킹 방지
-
-### 개선 가능 사항
-- [ ] 다중 ROI 지원
-- [ ] GPU 가속 활용
-- [ ] 플러그인 시스템
-- [ ] 단위 테스트 추가
+### 소스 코드 빌드
+```bash
+git clone https://github.com/...
+cd real-time-video-analysis
+# Visual Studio 2022에서 RealTimeVideoAnalysis.sln 열기
+# F5로 실행
+```
 
 ## 📝 라이선스
 
@@ -193,10 +102,9 @@ private void UpdatePerformanceInfo()
 
 ## 👨‍💻 개발자
 
-**[Your Name]**
-- Email: your.email@example.com
-- GitHub: [@your-github](https://github.com/your-github)
-- LinkedIn: [your-linkedin](https://linkedin.com/in/your-linkedin)
+**김재준**
+- Email: jaejun8613@gmail.com
+- GitHub: [@jjkim90](https://github.com/jjkim90)
 
 ---
 
