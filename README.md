@@ -6,26 +6,27 @@ OpenCVSharp와 WPF MVVM을 활용한 실시간 영상 처리 데스크톱 애플
 
 ## 🌟 주요 기능
 
-### 실시간 영상 처리
+### 1. 실시간 영상 처리
 - 웹캠 및 동영상 파일 지원
 - 30 FPS 안정적 처리
 - 프레임 단위 탐색
 
-![effects-demo](https://github.com/user-attachments/assets/0b588240-21cb-4524-b757-4ced971720e9)
+![video-controls](https://github.com/user-attachments/assets/f81abee7-820f-4e18-bb1b-7031bd06fa5c)
 
-### ROI 기반 선택적 처리
+
+### 2. ROI 기반 선택적 처리
 - 마우스 드래그로 관심 영역 지정
 - 선택 영역에만 효과 적용 (성능 최적화)
 
-![roi-select](https://github.com/user-attachments/assets/c701dcb0-e50b-4585-819c-237781a203a2)
+![effects-demo](https://github.com/user-attachments/assets/0b588240-21cb-4524-b757-4ced971720e9)
 
-### 다양한 이미지 효과
+### 3. 다양한 이미지 효과
 ![all-effects-comparison](https://github.com/user-attachments/assets/5d227994-4886-4fe9-9b90-22ee9d4db0ae)
 
 - Binary / Grayscale / Gaussian Blur
 - Sharpen / Color Detection / Brightness & Contrast
 
-### 편의 기능
+### 4. 편의 기능
 - 스크린샷 캡처 (PNG)
 - 동영상 녹화 (MP4)
 - 설정 저장/불러오기 (JSON)
